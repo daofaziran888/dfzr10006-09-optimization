@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from app.services.cache_refresh import cache_refresh
 from app.store import store
 
 MODULE = "router"
@@ -59,3 +60,13 @@ class RouterService:
         entry["pending"] = target != STATUS_ORDER[-1]
         entry["abnormal"] = action in NEGATIVE_ACTIONS
         return entry, f"路由规则已{action}"
+
+    def switch_check(self) -> dict[str, Any]:
+        """切换目标服务前检查：从缓存配置清单读出尚未失效的键名。"""
+        pending = cache_refresh.pending_invalidations()
+        keys = [str(row["缓存键名"]) for row in pending]
+        if keys:
+            note = "以下缓存键名尚未失效，切换目标服务前请先完成批量失效刷新"
+        else:
+            note = "全部缓存键名已失效，可安全切换目标服务"
+        return {"可切换": not keys, "未失效键名": keys, "明细": pending, "说明": note}

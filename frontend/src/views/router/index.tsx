@@ -45,6 +45,7 @@ export default function RouterView() {
   const [rows, setRows] = useState<Row[]>([])
   const [total, setTotal] = useState(0)
   const [errorMessage, setErrorMessage] = useState('')
+  const [switchCheck, setSwitchCheck] = useState<{ 可切换: boolean; 未失效键名: string[]; 说明: string } | null>(null)
   const [filters, setFilters] = useState<Record<string, string>>({})
   const filterFields = useMemo(() => columns.slice(0, 3), [])
 
@@ -84,6 +85,19 @@ export default function RouterView() {
     }
   }
 
+  async function checkSwitch() {
+    setErrorMessage('')
+    try {
+      const response = await request(`${ENDPOINT}/switch-check`)
+      if (!response.ok) {
+        throw new Error('切换前检查读取失败')
+      }
+      setSwitchCheck(await response.json())
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : '切换前检查读取失败')
+    }
+  }
+
   return (
     <section className="page" data-module="router">
       <header className="page-head">
@@ -95,11 +109,24 @@ export default function RouterView() {
           <button className="btn primary" type="button" onClick={() => setErrorMessage('路由规则登记入口尚未接入审批流')}>
             登记路由规则
           </button>
+          <button className="btn" type="button" onClick={() => void checkSwitch()}>
+            切换前检查未失效键名
+          </button>
           <button className="btn" type="button" onClick={() => window.open(`${ENDPOINT}/export`, '_blank')}>
             导出查询路由分发清单
           </button>
         </div>
       </header>
+
+      {switchCheck && (
+        <div className="panel">
+          <h3>切换目标服务前检查</h3>
+          <p className={switchCheck.可切换 ? 'muted' : 'error-text'}>{switchCheck.说明}</p>
+          {switchCheck.未失效键名.length > 0 && (
+            <p className="muted">未失效键名：{switchCheck.未失效键名.join('、')}</p>
+          )}
+        </div>
+      )}
 
       <div className="stat-row">
         {stats.map((item) => (

@@ -30,6 +30,12 @@ def list_entries(
     return PageResult(items=items, total=total, page=page, size=size)
 
 
+@router.get("/switch-check")
+def switch_check() -> dict[str, Any]:
+    """切换目标服务前检查：识别缓存配置清单里尚未失效的键名。"""
+    return service.switch_check()
+
+
 @router.get("/{entry_id}", response_model=dict)
 def get_entry(entry_id: int) -> dict:
     """读取单条路由规则明细；不存在时给出可读的错误说明。"""

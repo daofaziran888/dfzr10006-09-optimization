@@ -28,6 +28,14 @@ class EntryPayload(BaseModel):
     remark: str | None = None
 
 
+class RefreshBatchPayload(BaseModel):
+    """批量失效刷新：一次提交多条缓存记录与多选时间范围。"""
+
+    entry_ids: list[int] = Field(default_factory=list)
+    time_ranges: list[str] = Field(default_factory=list)
+    simulate_failure: bool = True
+
+
 
 class RegistryEntry(BaseModel):
     """服务实例明细结构。"""
